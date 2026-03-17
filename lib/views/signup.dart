@@ -219,6 +219,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                       onTap: () {
+                        // ignore: avoid_print
                         print("clicked");
                         Get.toNamed("/");
                       },
