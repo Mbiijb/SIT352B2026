@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
+import 'package:flutter_application_1/controllers/logincontroller.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get_navigation/src/snackbar/snackbar.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+
+LoginController loginController = Get.put(LoginController());
+TextEditingController usernameController = TextEditingController();
+TextEditingController passwordController = TextEditingController();
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,7 +19,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _isObscured = true;
+  final bool _isObscured = true;
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +34,11 @@ class _LoginScreenState extends State<LoginScreen> {
               Image.asset('assets/login.png', height: 100, width: 100),
               const SizedBox(height: 20),
 
-              // Username Field with Floating Label
+              // Username Field
               TextField(
+                controller: usernameController,
                 decoration: InputDecoration(
-                  labelText: "Enter username", // Floating label effect
-                  // labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+                  labelText: "Enter username",
                   hintText: "Use email or phone number",
                   prefixIcon: const Icon(Icons.person),
                   // Original borders preserved
@@ -46,31 +54,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 30),
 
-              // Password Field with Floating Label
-              TextField(
-                obscureText: _isObscured,
-                decoration: InputDecoration(
-                  labelText: "Enter password", // Floating label effect
-                  // labelStyle: const TextStyle(fontWeight: FontWeight.w700),
-                  hintText: "Password",
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: IconButton(
-                      icon: Icon(
-                        _isObscured ? Icons.visibility : Icons.visibility_off,
+              // Password Field
+              Obx(
+                () => TextField(
+                  obscureText: !loginController.ispasswordvisible.value,
+                  controller: passwordController,
+                  decoration: InputDecoration(
+                    labelText: "Enter password",
+                    hintText: "Password",
+                    prefixIcon: const Icon(Icons.lock),
+                    suffixIcon: GestureDetector(
+                      child: Icon(
+                        loginController.ispasswordvisible.value
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
-                      onPressed: () =>
-                          setState(() => _isObscured = !_isObscured),
+                      onTap: () {
+                        loginController.togglepassword();
+                      },
                     ),
-                  ),
-                  // Original borders preserved
-                  enabledBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.transparent),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: primarycolor),
-                    borderRadius: BorderRadius.circular(20),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.transparent),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: primarycolor),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
                 ),
               ),
@@ -81,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
               MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
-                  onTap: () => Get.offAndToNamed("/homescreen"),
+                  //onTap: () => Get.offAndToNamed("/homescreen"),
                   child: Container(
                     height: 50,
                     alignment: Alignment.center,
@@ -94,6 +103,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
+                  onTap: () {
+                    bool success = loginController.login(
+                      usernameController.text,
+                      passwordController.text,
+                    );
+                    if (success) {
+                      Get.offAndToNamed("/homescreen");
+                    } else {
+                      Get.snackbar(
+                        "Login Failed",
+                        "Invalid credentials",
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.redAccent,
+                        colorText: Colors.white,
+                        icon: const Icon(Icons.error, color: Colors.white),
+                        duration: const Duration(seconds: 5),
+                      );
+                    }
+                  },
                 ),
               ),
 
