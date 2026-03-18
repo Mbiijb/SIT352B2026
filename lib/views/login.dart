@@ -7,7 +7,7 @@ import 'package:get/get_navigation/src/extension_navigation.dart';
 import 'package:get/get_navigation/src/snackbar/snackbar.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
-LoginController loginController = Get.put(LoginController());
+LoginController logincontroller = Get.put(logincontroller);
 TextEditingController usernameController = TextEditingController();
 TextEditingController passwordController = TextEditingController();
 
@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Password Field
               Obx(
                 () => TextField(
-                  obscureText: !loginController.ispasswordvisible.value,
+                  obscureText: !logincontroller.ispasswordvisible.value,
                   controller: passwordController,
                   decoration: InputDecoration(
                     labelText: "Enter password",
@@ -65,12 +65,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: GestureDetector(
                       child: Icon(
-                        loginController.ispasswordvisible.value
+                        logincontroller.ispasswordvisible.value
                             ? Icons.visibility
                             : Icons.visibility_off,
                       ),
                       onTap: () {
-                        loginController.togglepassword();
+                        logincontroller.togglepassword();
                       },
                     ),
                     enabledBorder: const OutlineInputBorder(
@@ -104,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   onTap: () {
-                    bool success = loginController.login(
+                    bool success = logincontroller.login(
                       usernameController.text,
                       passwordController.text,
                     );
