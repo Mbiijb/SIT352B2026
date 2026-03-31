@@ -1,14 +1,17 @@
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
+import 'package:get/get.dart';
 
 class LoginController extends GetxController {
-  var username;
-  var password;
+  // Initialize with empty strings to avoid null errors
+  var username = "".obs;
+  var password = "".obs;
   var ispasswordvisible = false.obs;
-  bool login(user, pass) {
-    username = user;
-    password = pass;
-    if (username == "admin" && password == "12345") {
+
+  bool login(String user, String pass) {
+    username.value = user;
+    password.value = pass;
+
+    // Simple hardcoded check
+    if (username.value == "admin" && password.value == "12345") {
       return true;
     } else {
       return false;

@@ -3,7 +3,8 @@ import 'package:flutter_application_1/configs/colors.dart';
 // import 'package:flutter_application_1/configs/colors.dart';
 import 'package:flutter_application_1/configs/routes.dart';
 import 'package:flutter_application_1/views/login.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
+// import 'package:flutter_application_1/views/login.dart'; // Remove this if login is handled in routes
+import 'package:get/get.dart';
 
 void main() {
   runApp(

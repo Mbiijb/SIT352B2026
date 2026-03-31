@@ -1,7 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -11,6 +13,13 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  // 1. Controllers for capturing data [cite: 145]
+  final firstname = TextEditingController();
+  final lastname = TextEditingController();
+  final email = TextEditingController();
+  final phone = TextEditingController();
+  final password = TextEditingController();
+
   String? selectedCountry = 'United States';
   bool agreeToTerms = false;
   bool _obscureText = true;
@@ -22,6 +31,97 @@ class _SignUpScreenState extends State<SignUpScreen> {
     'Canada',
     'India',
   ];
+
+  // Function to perform the Sign Up via API [cite: 121, 145]
+  Future<void> signUpUser() async {
+    // Validation: Ensure all fields are filled [cite: 57, 145]
+    if (firstname.text.isEmpty ||
+        lastname.text.isEmpty ||
+        phone.text.isEmpty ||
+        email.text.isEmpty ||
+        password.text.isEmpty) {
+      Get.snackbar(
+        "Error",
+        "Please fill in all fields",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    if (password.text.length < 6) {
+      Get.snackbar(
+        "Error",
+        "Password must be at least 6 characters",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    if (!agreeToTerms) {
+      Get.snackbar(
+        "Error",
+        "You must agree to the terms",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    try {
+      // API call to your XAMPP server [cite: 133, 175]
+      // Note: Use 10.0.2.2 for Android Emulator to refer to localhost [cite: 177]
+      var url = Uri.parse("http://10.0.2.2/church_db/signup.php");
+
+      // Sending data via POST for security [cite: 240, 246]
+      var response = await http.post(
+        url,
+        body: {
+          "fname": firstname.text,
+          "sname": lastname.text,
+          "phone": phone.text,
+          "email": email.text,
+          "country": selectedCountry ?? "United States",
+          "password": password.text,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var serverData = jsonDecode(response.body);
+        if (serverData['success'] == 1) {
+          Get.snackbar(
+            "Success",
+            "Account created successfully",
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+          Get.offAllNamed("/"); // Navigate back to Login [cite: 147]
+        } else {
+          Get.snackbar(
+            "Error",
+            "Registration failed: ${serverData['message'] ?? 'Unknown error'}",
+            backgroundColor: Colors.redAccent,
+            colorText: Colors.white,
+          );
+        }
+      } else {
+        Get.snackbar(
+          "Error",
+          "Server returned status: ${response.statusCode}",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Connection Error: $e",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,17 +137,55 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 'assets/login.png',
                 height: 100,
                 width: 100,
-                errorBuilder: (ctx, obj, st) =>
-                    Icon(Icons.person_add, size: 100, color: primarycolor),
+                errorBuilder: (ctx, obj, st) => const Icon(
+                  Icons.person_add,
+                  size: 100,
+                  color: primarycolor,
+                ),
               ),
               const SizedBox(height: 20),
 
-              // Full Name Field
+              // First Name Field
               TextField(
+                controller: firstname,
                 decoration: InputDecoration(
-                  labelText: "Full Name",
-                  // labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+                  labelText: "First Name",
                   prefixIcon: const Icon(Icons.person_outline),
+                  enabledBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.transparent),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: primarycolor),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Last Name Field
+              TextField(
+                controller: lastname,
+                decoration: InputDecoration(
+                  labelText: "Last Name",
+                  prefixIcon: const Icon(Icons.person_outline),
+                  enabledBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.transparent),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: primarycolor),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Phone Number Field [cite: 57, 246]
+              TextField(
+                controller: phone,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: "Phone Number",
+                  prefixIcon: const Icon(Icons.phone),
                   enabledBorder: const OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.transparent),
                   ),
@@ -61,9 +199,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
               // Email Field
               TextField(
+                controller: email,
+                keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: "Email Address",
-                  // labelStyle: const TextStyle(fontWeight: FontWeight.w700),
                   hintText: "example@mail.com",
                   prefixIcon: const Icon(Icons.email_outlined),
                   enabledBorder: const OutlineInputBorder(
@@ -80,9 +219,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
               // Country Dropdown
               DropdownButtonFormField<String>(
                 initialValue: selectedCountry,
+                items: countries
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (value) => setState(() => selectedCountry = value),
                 decoration: InputDecoration(
                   labelText: "Country",
-                  // labelStyle: const TextStyle(fontWeight: FontWeight.w700),
                   prefixIcon: const Icon(Icons.public),
                   enabledBorder: const OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.transparent),
@@ -92,19 +234,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                items: countries.map((String country) {
-                  return DropdownMenuItem(value: country, child: Text(country));
-                }).toList(),
-                onChanged: (value) => setState(() => selectedCountry = value),
               ),
               const SizedBox(height: 20),
 
               // Password Field
               TextField(
+                controller: password,
                 obscureText: _obscureText,
                 decoration: InputDecoration(
                   labelText: "Password",
-                  // labelStyle: const TextStyle(fontWeight: FontWeight.w700),
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: MouseRegion(
                     cursor: SystemMouseCursors.click,
@@ -127,7 +265,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 10),
 
-              // Terms and Conditions Checkbox
+              // Checkbox
               Row(
                 children: [
                   Checkbox(
@@ -144,13 +282,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Sign Up Button (Custom Container style to match Login)
+              // Sign Up Button Container
               MouseRegion(
                 cursor: agreeToTerms
                     ? SystemMouseCursors.click
                     : SystemMouseCursors.basic,
                 child: GestureDetector(
-                  onTap: () => Get.offAllNamed("/homescreen"),
+                  onTap: signUpUser,
                   child: Container(
                     height: 50,
                     alignment: Alignment.center,
@@ -167,7 +305,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Divider
               const Row(
                 children: [
                   Expanded(child: Divider()),
@@ -180,7 +317,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Google Sign In Button
+              // Google Button
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -202,7 +339,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Kept your original navigation logic here
+              // Navigation
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -211,18 +348,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
-                      child: Text(
+                      onTap: () => Get.toNamed("/"),
+                      child: const Text(
                         "Login",
                         style: TextStyle(
                           color: primarycolor,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      onTap: () {
-                        // ignore: avoid_print
-                        print("clicked");
-                        Get.toNamed("/");
-                      },
                     ),
                   ),
                 ],

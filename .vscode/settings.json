@@ -6,5 +6,6 @@
   },
   "[dart]": {
     "editor.defaultFormatter": "Dart-Code.dart-code"
-  }
+  },
+  "cmake.sourceDirectory": "C:/Users/User/Desktop/JOHN/flutter/SIT352B2026/linux"
 }
