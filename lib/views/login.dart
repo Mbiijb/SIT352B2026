@@ -8,8 +8,7 @@ import 'package:http/http.dart' as http;
 
 // Initialize controllers
 final LoginController logincontroller = Get.put(LoginController());
-final TextEditingController phoneController =
-    TextEditingController(); // Changed for clarity
+final TextEditingController usernameController = TextEditingController();
 final TextEditingController passwordController = TextEditingController();
 
 class LoginScreen extends StatefulWidget {
@@ -20,16 +19,23 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // async function to handle the login network request
+  // Logic to handle login using the PHP API structure
   Future<void> loginUser() async {
-    String phone = phoneController.text.trim();
+    String phone = usernameController.text.trim();
     String password = passwordController.text.trim();
 
-    // 1. Validation
-    if (phone.isEmpty) {
+    // 1. Check LoginController first (for admin/12345 bypass)
+    bool isHardcodedAdmin = logincontroller.login(phone, password);
+    if (isHardcodedAdmin) {
+      Get.offAndToNamed("/homescreen");
+      return;
+    }
+
+    // 2. Validation for empty fields
+    if (phone.isEmpty || password.isEmpty) {
       Get.snackbar(
         "Login Failed",
-        "Phone number cannot be empty",
+        "Fields cannot be empty",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
@@ -37,35 +43,29 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    if (password.isEmpty) {
-      Get.snackbar(
-        "Login Failed",
-        "Password cannot be empty",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
-      return;
-    }
-
-    // 2. Perform Login Request [cite: 175, 240]
+    // 3. Database Authentication using GET
     try {
-      // Note: 10.0.2.2 is the alias for localhost on Android Emulators [cite: 133, 175]
-      final response = await http.get(
-        Uri.parse(
-          "http://10.0.2.2/church_db/login.php?phone=$phone&password=$password",
-        ),
-      );
+      // Data is appended to the URL as query parameters
+      final String url =
+          "http://localhost/church_db/login.php?phone=$phone&password=$password";
+
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final serverData = jsonDecode(response.body);
 
-        // Check success based on your PHP 'success' or 'code' key [cite: 182, 258]
-        if (serverData["success"] == 1 || serverData["code"] == 1) {
-          // Success navigation
+        // Your PHP returns 'code' => 1 for success
+        if (serverData["code"] == 1) {
+          // Success: Navigate to Home
+          Get.snackbar(
+            "Success",
+            "Welcome back!",
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
           Get.offAndToNamed("/homescreen");
         } else {
-          // Failure message from server [cite: 267]
+          // Failure: Show the 'message' from PHP
           Get.snackbar(
             "Login Failed",
             serverData["message"] ?? "Invalid credentials",
@@ -75,20 +75,10 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       } else {
-        Get.snackbar(
-          "Error",
-          "Server Error: ${response.statusCode}",
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
-        );
+        Get.snackbar("Error", "Server Error: ${response.statusCode}");
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Connection error: $e",
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      Get.snackbar("Error", "Check your connection or XAMPP status");
     }
   }
 
@@ -102,22 +92,23 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
               const SizedBox(height: 50),
+              // Church Logo
               Image.asset(
                 'assets/login.png',
                 height: 100,
                 width: 100,
-                errorBuilder: (ctx, obj, st) =>
+                errorBuilder: (ctx, err, st) =>
                     const Icon(Icons.church, size: 100, color: primarycolor),
               ),
               const SizedBox(height: 20),
 
-              // Phone Field (Replaces Username for DB compatibility)
+              // Phone Number Field
               TextField(
-                controller: phoneController,
+                controller: usernameController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
-                  labelText: "Enter phone number",
-                  hintText: "e.g. 0712345678",
+                  labelText: "Phone Number",
+                  hintText: "Enter registered phone",
                   prefixIcon: const Icon(Icons.phone),
                   enabledBorder: const OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.transparent),
@@ -131,21 +122,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 30),
 
-              // Password Field with Visibility Toggle
+              // Password Field
               Obx(
                 () => TextField(
                   obscureText: !logincontroller.ispasswordvisible.value,
                   controller: passwordController,
                   decoration: InputDecoration(
-                    labelText: "Enter password",
-                    hintText: "Password",
+                    labelText: "Password",
                     prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: GestureDetector(
-                      onTap: () => logincontroller.togglepassword(),
-                      child: Icon(
-                        logincontroller.ispasswordvisible.value
-                            ? Icons.visibility
-                            : Icons.visibility_off,
+                    suffixIcon: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () => logincontroller.togglepassword(),
+                        child: Icon(
+                          logincontroller.ispasswordvisible.value
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                       ),
                     ),
                     enabledBorder: const OutlineInputBorder(
@@ -161,11 +154,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 30),
 
-              // Login Button with Mouse Pointer
+              // Login Button
               MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
-                  onTap: loginUser, // Calls the async function created above
+                  onTap: loginUser,
                   child: Container(
                     height: 50,
                     alignment: Alignment.center,
@@ -181,37 +174,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10.0, 15.0, 10.0, 0.0),
-                child: Row(
-                  children: [
-                    const Text("Don't have an account?"),
-                    const SizedBox(width: 5),
-                    GestureDetector(
-                      onTap: () => Get.toNamed("/signup"),
-                      child: const Text(
-                        "Sign up",
-                        style: TextStyle(
-                          color: primarycolor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    const Text("Forgot password?"),
-                    const SizedBox(width: 5),
-                    const Text(
-                      "Reset",
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Don't have an account?"),
+                  TextButton(
+                    onPressed: () => Get.toNamed("/signup"),
+                    child: const Text(
+                      "Sign up",
                       style: TextStyle(
                         color: primarycolor,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
               const Row(
                 children: [
                   Expanded(child: Divider()),
@@ -222,9 +203,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Expanded(child: Divider()),
                 ],
               ),
-              const SizedBox(height: 30),
 
-              // Google Button
+              const SizedBox(height: 20),
+              // Google Mock Button
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -233,6 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   icon: const Icon(Icons.g_mobiledata, size: 30),
                   label: const Text("Sign in with Google"),
                   style: OutlinedButton.styleFrom(
+                    enabledMouseCursor: SystemMouseCursors.click,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),

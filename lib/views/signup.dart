@@ -13,7 +13,7 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // 1. Controllers for capturing data [cite: 145]
+  // 1. Controllers for capturing data
   final firstname = TextEditingController();
   final lastname = TextEditingController();
   final email = TextEditingController();
@@ -32,9 +32,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     'India',
   ];
 
-  // Function to perform the Sign Up via API [cite: 121, 145]
+  // Function to perform the Sign Up via API
   Future<void> signUpUser() async {
-    // Validation: Ensure all fields are filled [cite: 57, 145]
+    // Validation: Ensure all fields are filled
     if (firstname.text.isEmpty ||
         lastname.text.isEmpty ||
         phone.text.isEmpty ||
@@ -70,33 +70,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     try {
-      // API call to your XAMPP server [cite: 133, 175]
-      // Note: Use 10.0.2.2 for Android Emulator to refer to localhost [cite: 177]
-      var url = Uri.parse("http://10.0.2.2/church_db/signup.php");
-
-      // Sending data via POST for security [cite: 240, 246]
-      var response = await http.post(
-        url,
-        body: {
-          "fname": firstname.text,
-          "sname": lastname.text,
-          "phone": phone.text,
-          "email": email.text,
-          "country": selectedCountry ?? "United States",
-          "password": password.text,
-        },
+      // API call to your XAMPP server
+      // Data is appended to the URL as query parameters for the GET method
+      var url = Uri.parse(
+        "http://localhost/church_db/signup.php?"
+        "fname=${firstname.text}&"
+        "sname=${lastname.text}&"
+        "phone=${phone.text}&"
+        "email=${email.text}&"
+        "country=${selectedCountry ?? "United States"}&"
+        "password=${password.text}",
       );
+
+      // Changed from http.post to http.get
+      var response = await http.get(url);
 
       if (response.statusCode == 200) {
         var serverData = jsonDecode(response.body);
-        if (serverData['success'] == 1) {
+        if (serverData['success'] == 1 || serverData['code'] == 1) {
           Get.snackbar(
             "Success",
             "Account created successfully",
             backgroundColor: Colors.green,
             colorText: Colors.white,
           );
-          Get.offAllNamed("/"); // Navigate back to Login [cite: 147]
+          Get.offAllNamed("/"); // Navigate back to Login
         } else {
           Get.snackbar(
             "Error",
@@ -179,7 +177,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Phone Number Field [cite: 57, 246]
+              // Phone Number Field
               TextField(
                 controller: phone,
                 keyboardType: TextInputType.phone,
