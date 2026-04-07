@@ -1,22 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
+import 'package:flutter_application_1/controllers/eventsController.dart';
+import 'package:flutter_application_1/models/event_models.dart';
+import 'package:get/get.dart';
 
-class Event extends StatelessWidget {
-  const Event({super.key});
+class EventScreen extends StatelessWidget {
+  EventScreen({super.key});
+
+  final EventsController eventsController = Get.find<EventsController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
+          // 1. Search Bar Design
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
+              onChanged: (value) => eventsController.searchEvents(value),
               decoration: InputDecoration(
                 hintText: "Find an event...",
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: Colors.grey[100],
+                fillColor: Theme.of(context).cardColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(15),
                   borderSide: BorderSide.none,
@@ -24,25 +31,24 @@ class Event extends StatelessWidget {
               ),
             ),
           ),
+
+          // 2. Events List
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildEventCard(
-                  "Community Drive",
-                  "Oct 15, 2024 • 9:00 AM",
-                  "Join our local outreach to help provide essentials for families in need.",
-                  "OUTREACH",
-                  'assets/drive.jpg',
-                ),
-                _buildEventCard(
-                  "Youth Summer Camp",
-                  "Jun 12 - 16, 2025",
-                  "A high-energy week of fun, friendship, and growing in faith.",
-                  "YOUTH",
-                  'assets/camp.jpg',
-                ),
-              ],
+            child: Obx(
+              () => eventsController.isLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : eventsController.filteredEvents.isEmpty
+                  ? const Center(child: Text("No events found"))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: eventsController.filteredEvents.length,
+                      itemBuilder: (context, index) {
+                        return _buildEventCard(
+                          eventsController.filteredEvents[index],
+                          context,
+                        );
+                      },
+                    ),
             ),
           ),
         ],
@@ -50,13 +56,8 @@ class Event extends StatelessWidget {
     );
   }
 
-  Widget _buildEventCard(
-    String title,
-    String date,
-    String desc,
-    String tag,
-    String img,
-  ) {
+  // 3. Merged Card Design (Static Design + Dynamic Data)
+  Widget _buildEventCard(Event event, BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -66,16 +67,28 @@ class Event extends StatelessWidget {
         children: [
           Stack(
             children: [
+              // Event Image from XAMPP folder
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(24),
                 ),
-                child: Container(
+                child: Image.network(
+                  "http://localhost/church_db/event_images/${event.image}",
                   height: 180,
                   width: double.infinity,
-                  color: Colors.grey[300],
-                ), // Replace with Image.asset
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    height: 180,
+                    color: Colors.grey[300],
+                    child: const Icon(
+                      Icons.event,
+                      size: 50,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
               ),
+              // Dynamic Tag (Using a placeholder or a fallback since model doesn't have tag)
               Positioned(
                 top: 12,
                 right: 12,
@@ -85,11 +98,11 @@ class Event extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(
-                    tag,
+                  child: const Text(
+                    "CHURCH EVENT",
                     style: TextStyle(
                       color: primarycolor,
                       fontWeight: FontWeight.bold,
@@ -105,27 +118,30 @@ class Event extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Date from Model
                 Text(
-                  date,
-                  style: TextStyle(
+                  event.date,
+                  style: const TextStyle(
                     color: primarycolor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
+                // Title (Name) from Model
                 Text(
-                  title,
+                  event.name,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  desc,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                const Text(
+                  "Join us for this special gathering as we grow together in faith and community.",
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 16),
+                // Buttons from Design
                 Row(
                   children: [
                     Expanded(

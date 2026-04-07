@@ -2,12 +2,21 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
+import 'package:flutter_application_1/controllers/eventsController.dart';
+import 'package:flutter_application_1/controllers/givingController.dart';
 import 'package:flutter_application_1/controllers/loginController.dart';
+import 'package:flutter_application_1/controllers/navigationController.dart';
+import 'package:flutter_application_1/controllers/userProfileController.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 // Initialize controllers
 final LoginController logincontroller = Get.put(LoginController());
+final UserProfileController userController = Get.put(UserProfileController());
+final EventsController eventsController = Get.put(EventsController());
+final NavigationController navController = Get.put(NavigationController());
+final GivingController givingController = Get.put(GivingController());
+
 final TextEditingController phoneController =
     TextEditingController(); // Changed for clarity
 final TextEditingController passwordController = TextEditingController();
@@ -25,7 +34,15 @@ class _LoginScreenState extends State<LoginScreen> {
     String phone = phoneController.text.trim();
     String password = passwordController.text.trim();
 
-    // 1. Validation
+    // 1. HARDCODED BYPASS - Move this to the VERY TOP
+    if (phone == "admin" && password == "12345") {
+      print("Admin bypass triggered!");
+      logincontroller.setUserInfo("Admin", "User");
+      Get.offAndToNamed("/homescreen");
+      return; // This prevents the "Failed to fetch" error for admin
+    }
+
+    // 2. Validation
     if (phone.isEmpty) {
       Get.snackbar(
         "Login Failed",
@@ -48,24 +65,31 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // 2. Perform Login Request [cite: 175, 240]
+    // 3. Perform Login Request
     try {
-      // Note: 10.0.2.2 is the alias for localhost on Android Emulators [cite: 133, 175]
-      final response = await http.get(
-        Uri.parse(
-          "http://10.0.2.2/church_db/login.php?phone=$phone&password=$password",
-        ),
-      );
+      final String url =
+          "http://localhost/church_db/login.php?phone=$phone&password=$password";
+      print("Requesting URL: $url");
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final serverData = jsonDecode(response.body);
 
-        // Check success based on your PHP 'success' or 'code' key [cite: 182, 258]
+        // Check success based on your PHP 'success' or 'code' key
         if (serverData["success"] == 1 || serverData["code"] == 1) {
+          // Extract the name from the userdetails list returned by your PHP safely
+          if (serverData['userdetails'] != null &&
+              serverData['userdetails'].isNotEmpty) {
+            var user = serverData['userdetails'][0];
+            String f = user['fname'] ?? "User";
+            String l = user['lname'] ?? "";
+            logincontroller.setUserInfo(f, l);
+          }
+
           // Success navigation
           Get.offAndToNamed("/homescreen");
         } else {
-          // Failure message from server [cite: 267]
+          // Failure message from server
           Get.snackbar(
             "Login Failed",
             serverData["message"] ?? "Invalid credentials",
@@ -83,9 +107,10 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
+      print("CONNECTION ERROR: $e"); // This will show in your VS Code terminal
       Get.snackbar(
-        "Error",
-        "Connection error: $e",
+        "Connection Error",
+        "Check if XAMPP is running and use localhost",
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );

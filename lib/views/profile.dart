@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
+import 'package:flutter_application_1/controllers/loginController.dart';
 import 'package:flutter_application_1/views/login.dart';
 import 'package:flutter_application_1/views/updateprofilescreen.dart';
 import 'package:get/get.dart';
@@ -12,6 +13,10 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  final LoginController loginController = Get.isRegistered<LoginController>()
+      ? Get.find<LoginController>()
+      : Get.put(LoginController());
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -51,10 +56,19 @@ class _ProfileState extends State<Profile> {
               ],
             ),
             const SizedBox(height: 15),
-            const Text(
-              "John Doe",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
+            // FIX: Wrap with Obx and ensure value is read correctly
+            Obx(() {
+              // Combine fname and lname for the UI
+              String displayFullName =
+                  "${loginController.firstName.value} ${loginController.lastName.value}";
+              return Text(
+                displayFullName,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            }),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
