@@ -23,48 +23,73 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () => Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: () => navController.changeIndex(0), // Sets to Dashboard
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image.asset('assets/logo.png'),
+    return Scaffold(
+      body: Obx(
+        () => NestedScrollView(
+          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+            return <Widget>[
+              SliverAppBar(
+                floating: true, // Collapses as soon as you scroll down
+                snap: true, // Snaps back into view as soon as you scroll up
+                automaticallyImplyLeading: false,
+                backgroundColor:
+                    context.theme.appBarTheme.backgroundColor ?? secondarycolor,
+                leading: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () =>
+                        navController.changeIndex(0), // Sets to Dashboard
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.asset('assets/logo.png'),
+                    ),
+                  ),
+                ),
+                actions: [
+                  _buildAppBarIcon(
+                    icon: Get.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                    onTap: () => Get.changeThemeMode(
+                      Get.isDarkMode ? ThemeMode.light : ThemeMode.dark,
+                    ),
+                  ),
+                  _buildNotificationDropdown(),
+                  _buildAppBarIcon(
+                    icon: Icons.person_outline,
+                    onTap: () =>
+                        navController.changeIndex(4), // Sets to Profile
+                  ),
+                ],
               ),
-            ),
-          ),
-          actions: [
-            _buildAppBarIcon(
-              icon: Get.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-              onTap: () => Get.changeThemeMode(
-                Get.isDarkMode ? ThemeMode.light : ThemeMode.dark,
-              ),
-            ),
-            _buildNotificationDropdown(),
-            _buildAppBarIcon(
-              icon: Icons.person_outline,
-              onTap: () => navController.changeIndex(4), // Sets to Profile
-            ),
-          ],
+            ];
+          },
+          body: _pages[navController.selectedIndex.value],
         ),
-        body: _pages[navController.selectedIndex.value],
-        bottomNavigationBar: CurvedNavigationBar(
-          index: navController.selectedIndex.value, // Syncs with Top Bar
-          backgroundColor: context.theme.scaffoldBackgroundColor,
-          color: primarycolor,
-          buttonBackgroundColor: primarycolor,
-          items: const [
-            Icon(Icons.dashboard, color: Colors.white),
-            Icon(Icons.favorite, color: Colors.white),
-            Icon(Icons.add, color: Colors.white),
-            Icon(Icons.event, color: Colors.white),
-            Icon(Icons.person, color: Colors.white),
-          ],
-          onTap: (index) => navController.changeIndex(index),
+      ),
+      bottomNavigationBar: Obx(
+        () => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          height: navController.isBottomBarVisible.value
+              ? 75
+              : 0, // Collapses to 0
+          child: Wrap(
+            // Wrap prevents overflow errors when height is 0
+            children: [
+              CurvedNavigationBar(
+                index: navController.selectedIndex.value,
+                backgroundColor: context.theme.scaffoldBackgroundColor,
+                color: primarycolor,
+                buttonBackgroundColor: primarycolor,
+                items: const [
+                  Icon(Icons.dashboard, color: Colors.white),
+                  Icon(Icons.favorite, color: Colors.white),
+                  Icon(Icons.add, color: Colors.white),
+                  Icon(Icons.event, color: Colors.white),
+                  Icon(Icons.person, color: Colors.white),
+                ],
+                onTap: (index) => navController.changeIndex(index),
+              ),
+            ],
+          ),
         ),
       ),
     );

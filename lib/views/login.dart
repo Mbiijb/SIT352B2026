@@ -67,8 +67,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // 3. Perform Login Request
     try {
-      final String url =
-          "http://localhost/church_db/login.php?phone=$phone&password=$password";
+      final String baseUrl = GetPlatform.isAndroid
+          ? "http://10.0.2.2/church_db"
+          : "http://localhost/church_db";
+      final String url = "$baseUrl/login.php?phone=$phone&password=$password";
       print("Requesting URL: $url");
       final response = await http.get(Uri.parse(url));
 

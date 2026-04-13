@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_application_1/configs/colors.dart';
 import 'package:flutter_application_1/controllers/loginController.dart';
+import 'package:flutter_application_1/controllers/navigationController.dart';
 import 'package:flutter_application_1/views/login.dart';
 import 'package:flutter_application_1/views/updateprofilescreen.dart';
 import 'package:get/get.dart';
@@ -16,149 +18,166 @@ class _ProfileState extends State<Profile> {
   final LoginController loginController = Get.isRegistered<LoginController>()
       ? Get.find<LoginController>()
       : Get.put(LoginController());
+  final NavigationController nav = Get.find<NavigationController>();
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Profile Image Section
-            Stack(
-              children: [
-                SizedBox(
-                  width: 120,
-                  height: 120,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100),
-                    child: Image.asset('assets/profile.jpg', fit: BoxFit.cover),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 35,
-                    height: 35,
-                    decoration: BoxDecoration(
-                      color: primarycolor,
+    return NotificationListener<UserScrollNotification>(
+      onNotification: (notification) {
+        if (notification.direction == ScrollDirection.reverse) {
+          nav.setBottomBarVisibility(false); // Hide on scroll down
+        } else if (notification.direction == ScrollDirection.forward) {
+          nav.setBottomBarVisibility(true); // Show on scroll up
+        }
+        return true;
+      },
+      child: SingleChildScrollView(
+        child: Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Profile Image Section
+              Stack(
+                children: [
+                  SizedBox(
+                    width: 120,
+                    height: 120,
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(100),
-                      border: Border.all(color: Colors.white, width: 2),
+                      child: Image.asset(
+                        'assets/profile.jpg',
+                        fit: BoxFit.cover,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 18,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 35,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        color: primarycolor,
+                        borderRadius: BorderRadius.circular(100),
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 15),
+              // FIX: Wrap with Obx and ensure value is read correctly
+              Obx(() {
+                // Combine fname and lname for the UI
+                String displayFullName =
+                    "${loginController.firstName.value} ${loginController.lastName.value}";
+                return Text(
+                  displayFullName,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              }),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.church, size: 16, color: primarycolor),
+                  const SizedBox(width: 5),
+                  const Text(
+                    "Community Church",
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+              const Text(
+                "Faithful Member since January 2026",
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+              const SizedBox(height: 25),
+
+              //Giving Preferences Section
+              _buildSectionHeader(
+                Icons.volunteer_activism,
+                "Giving Preferences",
+              ),
+              const SizedBox(height: 10),
+              _buildCardWrapper([
+                ProfileMenuWidget(
+                  title: "Preferred Payment",
+                  subtitle: "Visa ending in •••• 4242",
+                  icon: Icons.credit_card,
+                  onPress: () {},
+                ),
+                const Divider(height: 1),
+                ProfileMenuWidget(
+                  title: "Recurring Gifts",
+                  subtitle: "2 active recurring donations",
+                  icon: Icons.sync,
+                  onPress: () {},
+                ),
+              ]),
+
+              const SizedBox(height: 25),
+
+              //Account Settings Section
+              _buildSectionHeader(Icons.person_outline, "Account Settings"),
+              const SizedBox(height: 10),
+              _buildCardWrapper([
+                ProfileMenuWidget(
+                  title: "Edit Profile",
+                  icon: Icons.person_outline,
+                  onPress: () => Get.to(() => const Updateprofilescreen()),
+                ),
+                const Divider(height: 1),
+                ProfileMenuWidget(
+                  title: "Notification Settings",
+                  icon: Icons.notifications_none,
+                  onPress: () {},
+                ),
+                const Divider(height: 1),
+                ProfileMenuWidget(
+                  title: "Information",
+                  icon: Icons.info_outline,
+                  onPress: () {},
+                ),
+                const Divider(height: 1),
+                ProfileMenuWidget(
+                  title: "Help & Support",
+                  icon: Icons.help_outline,
+                  onPress: () {},
+                ),
+              ]),
+
+              const SizedBox(height: 30),
+
+              // Sign Out Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton.icon(
+                  onPressed: () => Get.offAll(() => LoginScreen()),
+                  icon: const Icon(Icons.logout),
+                  label: const Text(
+                    "Sign Out",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: primarycolor,
+                    side: BorderSide(color: primarycolor.withOpacity(0.5)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
                     ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 15),
-            // FIX: Wrap with Obx and ensure value is read correctly
-            Obx(() {
-              // Combine fname and lname for the UI
-              String displayFullName =
-                  "${loginController.firstName.value} ${loginController.lastName.value}";
-              return Text(
-                displayFullName,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              );
-            }),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.church, size: 16, color: primarycolor),
-                const SizedBox(width: 5),
-                const Text(
-                  "Community Church",
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ],
-            ),
-            const Text(
-              "Faithful Member since January 2026",
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 25),
-
-            //Giving Preferences Section
-            _buildSectionHeader(Icons.volunteer_activism, "Giving Preferences"),
-            const SizedBox(height: 10),
-            _buildCardWrapper([
-              ProfileMenuWidget(
-                title: "Preferred Payment",
-                subtitle: "Visa ending in •••• 4242",
-                icon: Icons.credit_card,
-                onPress: () {},
               ),
-              const Divider(height: 1),
-              ProfileMenuWidget(
-                title: "Recurring Gifts",
-                subtitle: "2 active recurring donations",
-                icon: Icons.sync,
-                onPress: () {},
-              ),
-            ]),
-
-            const SizedBox(height: 25),
-
-            //Account Settings Section
-            _buildSectionHeader(Icons.person_outline, "Account Settings"),
-            const SizedBox(height: 10),
-            _buildCardWrapper([
-              ProfileMenuWidget(
-                title: "Edit Profile",
-                icon: Icons.person_outline,
-                onPress: () => Get.to(() => const Updateprofilescreen()),
-              ),
-              const Divider(height: 1),
-              ProfileMenuWidget(
-                title: "Notification Settings",
-                icon: Icons.notifications_none,
-                onPress: () {},
-              ),
-              const Divider(height: 1),
-              ProfileMenuWidget(
-                title: "Information",
-                icon: Icons.info_outline,
-                onPress: () {},
-              ),
-              const Divider(height: 1),
-              ProfileMenuWidget(
-                title: "Help & Support",
-                icon: Icons.help_outline,
-                onPress: () {},
-              ),
-            ]),
-
-            const SizedBox(height: 30),
-
-            // Sign Out Button
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: OutlinedButton.icon(
-                onPressed: () => Get.offAll(() => LoginScreen()),
-                icon: const Icon(Icons.logout),
-                label: const Text(
-                  "Sign Out",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: primarycolor,
-                  side: BorderSide(color: primarycolor.withOpacity(0.5)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
