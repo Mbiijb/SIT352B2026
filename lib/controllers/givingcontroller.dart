@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/controllers/userProfileController.dart'; // Import your profile controller
+import 'package:flutter_application_1/controllers/userProfileController.dart';
 import 'package:flutter_application_1/models/giving_model.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -12,7 +12,7 @@ class GivingController extends GetxController {
   final offeringController = TextEditingController();
   final pledgeController = TextEditingController();
 
-  // Focus Nodes to navigate to respective input fields
+  // Focus Nodes
   final titheFocus = FocusNode();
   final offeringFocus = FocusNode();
   final pledgeFocus = FocusNode();
@@ -67,7 +67,6 @@ class GivingController extends GetxController {
     }
   }
 
-  // Function to process giving
   Future<void> processGiving(String category, String amount) async {
     if (amount.isEmpty || double.tryParse(amount) == 0) {
       Get.snackbar(
@@ -81,7 +80,6 @@ class GivingController extends GetxController {
 
     isLoading.value = true;
     try {
-      // Get user email from UserProfileController
       final UserProfileController userProv = Get.find();
 
       final String baseUrl = GetPlatform.isAndroid
@@ -106,12 +104,10 @@ class GivingController extends GetxController {
           colorText: Colors.white,
         );
 
-        // Clear inputs
         titheController.clear();
         offeringController.clear();
         pledgeController.clear();
 
-        // Refresh history after new contribution
         fetchGivingHistory();
       }
     } catch (e) {
@@ -121,7 +117,7 @@ class GivingController extends GetxController {
     }
   }
 
-  // Always properly dispose FocusNodes and Controllers to prevent memory leaks
+  // Dispose FocusNodes and Controllers to prevent memory leaks
   @override
   void onClose() {
     titheController.dispose();

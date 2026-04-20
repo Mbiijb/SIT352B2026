@@ -22,7 +22,7 @@ class EventScreen extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          // 1. Search Bar Design
+          // Search Bar
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
@@ -40,7 +40,7 @@ class EventScreen extends StatelessWidget {
             ),
           ),
 
-          // 2. Events List
+          // Events List
           Expanded(
             child: Obx(
               () => eventsController.isLoading.value
@@ -77,7 +77,7 @@ class EventScreen extends StatelessWidget {
     );
   }
 
-  // 3. Merged Card Design (Static Design + Dynamic Data)
+  // Event Card
   Widget _buildEventCard(Event event, BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 20),
@@ -88,7 +88,6 @@ class EventScreen extends StatelessWidget {
         children: [
           Stack(
             children: [
-              // Event Image from XAMPP folder
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(24),
@@ -111,9 +110,6 @@ class EventScreen extends StatelessWidget {
                         width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          print(
-                            "Failed to load asset image: $error",
-                          ); // Prints the exact issue to your console
                           return Container(
                             height: 180,
                             color: Colors.grey[300],
@@ -126,7 +122,7 @@ class EventScreen extends StatelessWidget {
                         },
                       ),
               ),
-              // Dynamic Tag (Using a placeholder or a fallback since model doesn't have tag)
+              // Dynamic Tag fallback
               Positioned(
                 top: 12,
                 right: 12,
@@ -156,7 +152,6 @@ class EventScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Date from Model
                 Text(
                   event.date,
                   style: const TextStyle(
@@ -165,7 +160,6 @@ class EventScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                // Title (Name) from Model
                 Text(
                   event.name,
                   style: const TextStyle(
@@ -179,7 +173,6 @@ class EventScreen extends StatelessWidget {
                   style: const TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 16),
-                // Buttons from Design
                 Row(
                   children: [
                     Expanded(
@@ -298,7 +291,7 @@ class EventScreen extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Get.back(); // Closes the details panel
+                    Get.back();
                     _confirmRegistration(event);
                   },
                   child: const Text(
@@ -326,7 +319,7 @@ class EventScreen extends StatelessWidget {
       buttonColor: primarycolor,
       cancelTextColor: primarycolor,
       onConfirm: () {
-        Get.back(); // Closes dialog
+        Get.back();
         Get.find<EventsController>().registerForEvent(event.id);
       },
     );

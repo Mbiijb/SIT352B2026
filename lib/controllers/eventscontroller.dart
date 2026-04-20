@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 class EventsController extends GetxController {
   var allEvents = <Event>[].obs;
   var filteredEvents = <Event>[].obs;
+  var registeredEvents = <Event>[].obs;
   var isLoading = true.obs;
   var isRegistering = false.obs;
 
@@ -42,6 +43,31 @@ class EventsController extends GetxController {
       print("Error fetching events: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchUserRegistrations() async {
+    try {
+      final UserProfileController user = Get.find<UserProfileController>();
+      final String baseUrl = GetPlatform.isAndroid
+          ? "http://10.0.2.2/church_db"
+          : "http://localhost/church_db";
+
+      var url = Uri.parse(
+        "$baseUrl/get_registered_events.php?email=${user.email.value}",
+      );
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        var serverData = jsonDecode(response.body);
+        List eventData = serverData["data"] ?? [];
+        List<Event> fetched = eventData
+            .map<Event>((e) => Event.fromJson(e))
+            .toList();
+        registeredEvents.assignAll(fetched);
+      }
+    } catch (e) {
+      print("Error fetching user registrations: $e");
     }
   }
 

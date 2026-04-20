@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
-// import 'package:flutter_application_1/configs/colors.dart';
 import 'package:flutter_application_1/configs/routes.dart';
 import 'package:flutter_application_1/controllers/eventsController.dart';
 import 'package:flutter_application_1/controllers/givingController.dart';
 import 'package:flutter_application_1/controllers/navigationController.dart';
 import 'package:flutter_application_1/controllers/userProfileController.dart';
-// import 'package:flutter_application_1/views/login.dart'; // Remove this if login is handled in routes
 import 'package:get/get.dart';
 
 void main() {

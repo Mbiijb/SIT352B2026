@@ -16,7 +16,6 @@ class HomeScreen extends StatelessWidget {
   final List<Widget> _pages = <Widget>[
     Dashboard(),
     Giving(),
-    const Center(child: Text('Create')),
     EventScreen(),
     Profile(),
   ];
@@ -37,8 +36,7 @@ class HomeScreen extends StatelessWidget {
                 leading: MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: GestureDetector(
-                    onTap: () =>
-                        navController.changeIndex(0), // Sets to Dashboard
+                    onTap: () => navController.changeIndex(0),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Image.asset('assets/logo.png'),
@@ -55,8 +53,7 @@ class HomeScreen extends StatelessWidget {
                   _buildNotificationDropdown(),
                   _buildAppBarIcon(
                     icon: Icons.person_outline,
-                    onTap: () =>
-                        navController.changeIndex(4), // Sets to Profile
+                    onTap: () => navController.changeIndex(3),
                   ),
                 ],
               ),
@@ -82,7 +79,6 @@ class HomeScreen extends StatelessWidget {
                 items: const [
                   Icon(Icons.dashboard, color: Colors.white),
                   Icon(Icons.favorite, color: Colors.white),
-                  Icon(Icons.add, color: Colors.white),
                   Icon(Icons.event, color: Colors.white),
                   Icon(Icons.person, color: Colors.white),
                 ],

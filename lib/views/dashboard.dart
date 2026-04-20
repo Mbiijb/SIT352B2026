@@ -1,34 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_application_1/configs/colors.dart';
+import 'package:flutter_application_1/controllers/eventsController.dart';
 import 'package:flutter_application_1/controllers/navigationController.dart';
+import 'package:flutter_application_1/views/financial_report.dart';
+import 'package:flutter_application_1/views/giving_history.dart';
 import 'package:get/get.dart';
 
-final titles = [
-  "Pay Bills",
-  "History",
-  "Reports",
-  "Ministries",
-  "Members",
-  "Donations",
-];
+final titles = ["Pay Bills", "History", "Reports", "My Events"];
 
 final List<IconData> icons = [
   Icons.account_balance_wallet_outlined,
   Icons.history,
   Icons.bar_chart_rounded,
-  Icons.groups_outlined,
-  Icons.person_search_outlined,
-  Icons.volunteer_activism_outlined,
+  Icons.event_available,
 ];
 
 final List subtitles = [
   "Tithes & Offerings",
   "Past Transactions",
   "Annual Statements",
-  "Church Groups",
-  "Directory",
-  "Online Giving",
+  "Registered Events",
 ];
 
 class Dashboard extends StatefulWidget {
@@ -169,68 +161,92 @@ class _DashboardState extends State<Dashboard> {
                   childAspectRatio: 1.1,
                 ),
                 delegate: SliverChildBuilderDelegate((context, index) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F4F8),
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            icons[index],
-                            color: primarycolor,
-                            size: 24,
-                          ),
+                  return GestureDetector(
+                    onTap: () {
+                      if (index == 0) {
+                        nav.changeIndex(1);
+                      } else if (index == 1) {
+                        Get.to(() => const GivingHistory());
+                      } else if (index == 2) {
+                        Get.to(() => const FinancialReport());
+                      } else if (index == 3) {
+                        _showRegisteredEvents(context);
+                      }
+                    },
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F4F8),
+                          borderRadius: BorderRadius.circular(24),
                         ),
-                        const Spacer(),
-                        Text(
-                          titles[index],
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                icons[index],
+                                color: primarycolor,
+                                size: 24,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              titles[index],
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              subtitles[index],
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          subtitles[index],
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   );
                 }, childCount: titles.length),
               ),
             ),
 
-            //Latest Updates Section
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       "Latest Updates",
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 18,
                       ),
                     ),
-                    Text(
-                      "See all",
-                      style: TextStyle(
-                        color: primarycolor,
-                        fontWeight: FontWeight.w600,
+                    GestureDetector(
+                      onTap: () => nav.changeIndex(2),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: const Text(
+                          "See all",
+                          style: TextStyle(
+                            color: primarycolor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -292,6 +308,53 @@ class _DashboardState extends State<Dashboard> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showRegisteredEvents(BuildContext context) {
+    final EventsController eController = Get.find<EventsController>();
+
+    eController.fetchUserRegistrations();
+
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("My Registered Events"),
+        content: Obx(
+          () => SizedBox(
+            width: double.maxFinite,
+            child: eController.registeredEvents.isEmpty
+                ? const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      "You haven't registered for any events yet.",
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: eController.registeredEvents.length,
+                    itemBuilder: (context, i) => ListTile(
+                      leading: const Icon(
+                        Icons.event_available,
+                        color: primarycolor,
+                      ),
+                      title: Text(
+                        eController.registeredEvents[i].name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(eController.registeredEvents[i].date),
+                    ),
+                  ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text("Close", style: TextStyle(color: primarycolor)),
+          ),
+        ],
       ),
     );
   }
