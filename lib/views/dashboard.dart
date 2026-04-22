@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_application_1/configs/colors.dart';
-import 'package:flutter_application_1/controllers/eventsController.dart';
 import 'package:flutter_application_1/controllers/navigationController.dart';
+import 'package:flutter_application_1/views/events_history.dart';
 import 'package:flutter_application_1/views/financial_report.dart';
 import 'package:flutter_application_1/views/giving_history.dart';
 import 'package:get/get.dart';
@@ -31,7 +31,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  final NavigationController nav = Get.find<NavigationController>();
+  final NavigationController nav = Get.put(NavigationController());
   bool _isBannerHovered = false;
 
   @override
@@ -170,7 +170,7 @@ class _DashboardState extends State<Dashboard> {
                       } else if (index == 2) {
                         Get.to(() => const FinancialReport());
                       } else if (index == 3) {
-                        _showRegisteredEvents(context);
+                        Get.to(() => const EventsHistory());
                       }
                     },
                     child: MouseRegion(
@@ -308,53 +308,6 @@ class _DashboardState extends State<Dashboard> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showRegisteredEvents(BuildContext context) {
-    final EventsController eController = Get.find<EventsController>();
-
-    eController.fetchUserRegistrations();
-
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("My Registered Events"),
-        content: Obx(
-          () => SizedBox(
-            width: double.maxFinite,
-            child: eController.registeredEvents.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Text(
-                      "You haven't registered for any events yet.",
-                      textAlign: TextAlign.center,
-                    ),
-                  )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: eController.registeredEvents.length,
-                    itemBuilder: (context, i) => ListTile(
-                      leading: const Icon(
-                        Icons.event_available,
-                        color: primarycolor,
-                      ),
-                      title: Text(
-                        eController.registeredEvents[i].name,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(eController.registeredEvents[i].date),
-                    ),
-                  ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text("Close", style: TextStyle(color: primarycolor)),
-          ),
-        ],
       ),
     );
   }

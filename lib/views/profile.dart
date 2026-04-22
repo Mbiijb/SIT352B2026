@@ -18,7 +18,7 @@ class _ProfileState extends State<Profile> {
   final LoginController loginController = Get.isRegistered<LoginController>()
       ? Get.find<LoginController>()
       : Get.put(LoginController());
-  final NavigationController nav = Get.find<NavigationController>();
+  final NavigationController nav = Get.put(NavigationController());
 
   @override
   Widget build(BuildContext context) {

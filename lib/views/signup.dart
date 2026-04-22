@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/configs/colors.dart';
+import 'package:flutter_application_1/controllers/loginController.dart';
+import 'package:flutter_application_1/controllers/userProfileController.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -70,9 +72,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
 
     try {
+      // Fix: dynamically set the URL base (10.0.2.2 is required for Android Emulators)
+      final String baseUrl = GetPlatform.isAndroid
+          ? "http://10.0.2.2/church_db"
+          : "http://localhost/church_db";
+
       // Construct the URL with fname and lname as separate parameters
       var url = Uri.parse(
-        "http://localhost/church_db/signup.php?"
+        "$baseUrl/signup.php?"
         "fname=${firstname.text.trim()}&" // Matches PHP $_GET['fname']
         "lname=${lastname.text.trim()}&" // Matches PHP $_GET['lname']
         "phone=${phone.text.trim()}&"
@@ -94,7 +101,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
             backgroundColor: Colors.green,
             colorText: Colors.white,
           );
-          Get.offAllNamed("/homescreen"); // Navigate back to Login
+          // Manually "log in" the user by populating the necessary controllers
+          // This ensures the app knows who the user is when they land on the home screen
+          final LoginController loginController = Get.put(
+            LoginController(),
+            permanent: true,
+          );
+          final UserProfileController userController = Get.put(
+            UserProfileController(),
+            permanent: true,
+          );
+
+          loginController.setUserInfo(
+            firstname.text.trim(),
+            lastname.text.trim(),
+          );
+          loginController.email.value = email.text.trim(); // Save the email!
+          userController.email.value = email.text.trim(); // Save for events
+          Get.offAllNamed("/homescreen"); // Navigate to the home screen
         } else {
           Get.snackbar(
             "Error",

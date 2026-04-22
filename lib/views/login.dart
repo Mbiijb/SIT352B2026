@@ -11,14 +11,19 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 // Initialize controllers
-final LoginController logincontroller = Get.put(LoginController());
-final UserProfileController userController = Get.put(UserProfileController());
+final LoginController logincontroller = Get.put(
+  LoginController(),
+  permanent: true,
+);
+final UserProfileController userController = Get.put(
+  UserProfileController(),
+  permanent: true,
+);
 final EventsController eventsController = Get.put(EventsController());
 final NavigationController navController = Get.put(NavigationController());
 final GivingController givingController = Get.put(GivingController());
 
-final TextEditingController phoneController =
-    TextEditingController(); // Changed for clarity
+final TextEditingController usernameController = TextEditingController();
 final TextEditingController passwordController = TextEditingController();
 
 class LoginScreen extends StatefulWidget {
@@ -31,22 +36,23 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   // async function to handle the login network request
   Future<void> loginUser() async {
-    String phone = phoneController.text.trim();
+    String username = usernameController.text.trim();
     String password = passwordController.text.trim();
 
     // 1. HARDCODED BYPASS - Move this to the VERY TOP
-    if (phone == "admin" && password == "12345") {
+    if (username == "admin" && password == "12345") {
       print("Admin bypass triggered!");
       logincontroller.setUserInfo("Admin", "User");
+      logincontroller.email.value = "admin@church.com";
       Get.offAndToNamed("/homescreen");
       return; // This prevents the "Failed to fetch" error for admin
     }
 
     // 2. Validation
-    if (phone.isEmpty) {
+    if (username.isEmpty) {
       Get.snackbar(
         "Login Failed",
-        "Phone number cannot be empty",
+        "Username cannot be empty",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
@@ -70,7 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
       final String baseUrl = GetPlatform.isAndroid
           ? "http://10.0.2.2/church_db"
           : "http://localhost/church_db";
-      final String url = "$baseUrl/login.php?phone=$phone&password=$password";
+      final String url =
+          "$baseUrl/login.php?username=$username&password=$password";
       print("Requesting URL: $url");
       final response = await http.get(Uri.parse(url));
 
@@ -85,7 +92,11 @@ class _LoginScreenState extends State<LoginScreen> {
             var user = serverData['userdetails'][0];
             String f = user['fname'] ?? "User";
             String l = user['lname'] ?? "";
+            String email = user['email'] ?? "";
+
             logincontroller.setUserInfo(f, l);
+            logincontroller.email.value = email; // Save securely
+            userController.email.value = email;
           }
 
           // Success navigation
@@ -138,14 +149,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Phone Field (Replaces Username for DB compatibility)
+              // Username Field
               TextField(
-                controller: phoneController,
-                keyboardType: TextInputType.phone,
+                controller: usernameController,
+                keyboardType: TextInputType.text,
                 decoration: InputDecoration(
-                  labelText: "Enter phone number",
-                  hintText: "e.g. 0712345678",
-                  prefixIcon: const Icon(Icons.phone),
+                  labelText: "Enter username",
+                  hintText: "e.g. john_doe",
+                  prefixIcon: const Icon(Icons.person),
                   enabledBorder: const OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.transparent),
                   ),
@@ -227,11 +238,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Spacer(),
                     const Text("Forgot password?"),
                     const SizedBox(width: 5),
-                    const Text(
-                      "Reset",
-                      style: TextStyle(
-                        color: primarycolor,
-                        fontWeight: FontWeight.bold,
+                    GestureDetector(
+                      onTap: () {
+                        // TODO: Navigate to a new Password Reset screen
+                        Get.snackbar(
+                          "Coming Soon",
+                          "Password reset functionality is not yet implemented.",
+                        );
+                      },
+                      child: const Text(
+                        "Reset",
+                        style: TextStyle(
+                          color: primarycolor,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],

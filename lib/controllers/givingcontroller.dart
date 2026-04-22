@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/controllers/userProfileController.dart';
+import 'package:flutter_application_1/controllers/loginController.dart';
 import 'package:flutter_application_1/models/giving_model.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -33,12 +33,20 @@ class GivingController extends GetxController {
   Future<void> fetchGivingHistory() async {
     try {
       isLoading.value = true;
-      final UserProfileController user = Get.find();
+      final LoginController login = Get.find<LoginController>();
+
+      if (login.email.value.isEmpty) {
+        print(
+          "Email is empty. Skipping fetch to prevent shared empty records.",
+        );
+        isLoading.value = false;
+        return;
+      }
 
       final String baseUrl = GetPlatform.isAndroid
           ? "http://10.0.2.2/church_db"
           : "http://localhost/church_db";
-      var url = Uri.parse("$baseUrl/get_giving.php?email=${user.email.value}");
+      var url = Uri.parse("$baseUrl/get_giving.php?email=${login.email.value}");
       var response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -80,14 +88,24 @@ class GivingController extends GetxController {
 
     isLoading.value = true;
     try {
-      final UserProfileController userProv = Get.find();
+      final LoginController login = Get.find<LoginController>();
+
+      if (login.email.value.isEmpty) {
+        Get.snackbar(
+          "Session Error",
+          "Identity verification failed. Please log out and log back in.",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        return;
+      }
 
       final String baseUrl = GetPlatform.isAndroid
           ? "http://10.0.2.2/church_db"
           : "http://localhost/church_db";
       var url = Uri.parse(
         "$baseUrl/giving.php?"
-        "email=${userProv.email.value}&"
+        "email=${login.email.value}&"
         "amount=$amount&"
         "category=$category&"
         "monthly=${isMonthly.value ? 1 : 0}",

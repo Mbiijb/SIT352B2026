@@ -4,13 +4,14 @@ import 'package:flutter_application_1/configs/colors.dart';
 import 'package:flutter_application_1/controllers/eventsController.dart';
 import 'package:flutter_application_1/controllers/navigationController.dart';
 import 'package:flutter_application_1/models/event_models.dart';
+import 'package:flutter_application_1/views/events_history.dart';
 import 'package:get/get.dart';
 
 class EventScreen extends StatelessWidget {
   EventScreen({super.key});
 
-  final EventsController eventsController = Get.find<EventsController>();
-  final NavigationController nav = Get.find<NavigationController>();
+  final EventsController eventsController = Get.put(EventsController());
+  final NavigationController nav = Get.put(NavigationController());
 
   // Dynamically set the URL base (10.0.2.2 is required for Android Emulators)
   final String baseUrl = GetPlatform.isAndroid
@@ -22,6 +23,24 @@ class EventScreen extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
+          // Header row with title and history icon
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Events",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.history, color: primarycolor),
+                  onPressed: () => Get.to(() => const EventsHistory()),
+                ),
+              ],
+            ),
+          ),
+
           // Search Bar
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -320,7 +339,7 @@ class EventScreen extends StatelessWidget {
       cancelTextColor: primarycolor,
       onConfirm: () {
         Get.back();
-        Get.find<EventsController>().registerForEvent(event.id);
+        Get.put(EventsController()).registerForEvent(event.id);
       },
     );
   }

@@ -10,6 +10,7 @@ class LoginController extends GetxController {
   var isLoggedIn = false.obs;
   var firstName = "Guest".obs;
   var lastName = "".obs;
+  var email = "".obs; // Track email safely here
 
   // Admin bypass check
   bool login(String user, String pass) {
@@ -20,6 +21,7 @@ class LoginController extends GetxController {
       isLoggedIn.value = true;
       firstName.value = "Admin";
       lastName.value = "User";
+      email.value = "admin@church.com"; // Prevent blank admin queries
       return true;
     } else {
       return false;

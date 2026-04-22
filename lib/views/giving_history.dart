@@ -10,7 +10,7 @@ class GivingHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GivingController controller = Get.find<GivingController>();
+    final GivingController controller = Get.put(GivingController());
 
     return Scaffold(
       appBar: AppBar(
