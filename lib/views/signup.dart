@@ -339,7 +339,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Google Button
+              /*              // Google Button
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -358,7 +358,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-              ),
+              ),*/
               const SizedBox(height: 20),
 
               // Navigation

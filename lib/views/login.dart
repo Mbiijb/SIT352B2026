@@ -257,7 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-
+              /*
               const SizedBox(height: 30),
               const Row(
                 children: [
@@ -286,6 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+*/
             ],
           ),
         ),

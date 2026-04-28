@@ -152,8 +152,10 @@ class GivingHistory extends StatelessWidget {
             ),
             Text(
               item.status.toUpperCase(),
-              style: const TextStyle(
-                color: Colors.green,
+              style: TextStyle(
+                color: item.status.toLowerCase() == 'pending'
+                    ? Colors.orange
+                    : Colors.green,
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
               ),

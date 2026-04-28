@@ -188,8 +188,10 @@ class EventScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  event.desc,
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  event.desc.length > 60
+                      ? "${event.desc.substring(0, 60)}..."
+                      : event.desc,
+                  style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -291,7 +293,14 @@ class EventScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Text(event.desc, style: const TextStyle(fontSize: 16)),
+                    Text(
+                      event.desc,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Colors.black87,
+                        height: 1.5,
+                      ),
+                    ),
                   ],
                 ),
               ),
